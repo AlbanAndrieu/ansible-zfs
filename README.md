@@ -7,7 +7,9 @@ which can be used to easily snapshot/rollback huge amount of data on your workst
 
 ### Installation
 
-This role requires at least Ansible `v1.6.3`. To install it, run:
+This role requires at least Ansible `v1.6.3`. 
+
+To install it, run:
 
     ansible-galaxy install alban.andrieu.zfs
 
