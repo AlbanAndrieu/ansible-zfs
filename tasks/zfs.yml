@@ -22,7 +22,7 @@
      - zfs-initramfs
      - zfsutils
      - ubuntu-zfs
-     - zfs-fuse
+     #- zfs-fuse
      - grub2-common
      - grub-pc
      - zfs-dkms
