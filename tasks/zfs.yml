@@ -31,7 +31,7 @@
 - name: Reboot instance
   command: /sbin/shutdown -r now
   register: reboot_result
-  when: "package_result|changed"
+  when: "package_result|changed" and reboot_enabled"
 
 - name: Wait for instance to come online (10 minute timeout)
   sudo: false
@@ -42,7 +42,7 @@
     delay: 30
     timeout: 600
     state: started
-  when: "package_result|changed"
+  when: "package_result|changed and reboot_enabled"
 
 #sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
 
