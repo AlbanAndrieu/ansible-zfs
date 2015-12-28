@@ -18,6 +18,15 @@
     - dkms
     - ubuntu-zfs
 
+#sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
+#sudo apt-get dist-upgrade
+- name: Upgrade kernel
+  apt: pkg={{ item }} state=present update_cache=yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  with_items:
+     - linux-image-generic
+     - linux-headers-generic
+
 - name: Install ZFS repo
   apt_repository: repo={{ item }} update_cache=yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
@@ -58,10 +67,6 @@
     timeout: 600
     state: started
   when: "package_result|changed and reboot_enabled"
-
-#sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
-
-#sudo apt-get dist-upgrade
 
 - name: Check dkms
   command: /usr/sbin/dkms status
