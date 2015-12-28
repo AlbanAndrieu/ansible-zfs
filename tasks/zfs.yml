@@ -27,6 +27,8 @@
      #- zfs-fuse
      - grub2-common
      - grub-pc
+     - spl
+     - spl-dkms
      - zfs-dkms
   register: package_result
 
@@ -47,6 +49,15 @@
   when: "package_result|changed and reboot_enabled"
 
 #sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
+
+#sudo apt-get dist-upgrade
+
+- name: Check dkms
+  command: /usr/sbin/dkms status
+  register: dkms_result
+  when: "package_result|changed and not reboot_enabled"
+
+#sudo dkms remove -m zfs -v 0.6.2 --all
 
 - name: Load the zfs module
   command: /sbin/modprobe zfs
