@@ -7,6 +7,17 @@
     msg: "{{ ansible_distribution_version }} is not an acceptable version of Ubuntu for this role"
   when: ansible_distribution_version|version_compare(12.04, '<') or ansible_distribution_version|version_compare(12.10, '=')
 
+- name:  Uninstall dkms packages
+  apt: >
+    pkg={{ item }}
+    state=absent
+    purge=yes
+    force=yes
+  sudo : yes
+  with_items:
+    - dkms
+    - ubuntu-zfs
+
 - name: Install ZFS repo
   apt_repository: repo={{ item }} update_cache=yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
@@ -20,16 +31,16 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   with_items:
      - software-properties-common
-     - debootstrap
-     - zfs-initramfs
-     - zfsutils
+#     - debootstrap
+#     - zfs-initramfs
+#     - zfsutils
      - ubuntu-zfs
      #- zfs-fuse
-     - grub2-common
-     - grub-pc
-     - spl
-     - spl-dkms
-     - zfs-dkms
+#     - grub2-common
+#     - grub-pc
+#     - spl
+#     - spl-dkms
+#     - zfs-dkms
   register: package_result
 
 - name: Reboot instance
