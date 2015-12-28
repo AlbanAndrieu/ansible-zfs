@@ -16,16 +16,20 @@
   sudo : yes
   with_items:
     - dkms
+    - zfs-dkms
+    - spl-dkms
     - ubuntu-zfs
+    - virtualbox*
+#sudo apt-get autoremove 'virtualbox*'
 
 #sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
 #sudo apt-get dist-upgrade
-- name: Upgrade kernel
-  apt: pkg={{ item }} state=present update_cache=yes
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  with_items:
-     - linux-image-generic
-     - linux-headers-generic
+#- name: Upgrade kernel
+#  apt: pkg={{ item }} state=present update_cache=yes
+#  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+#  with_items:
+#     - linux-image-generic
+#     - linux-headers-generic
 
 - name: Install ZFS repo
   apt_repository: repo={{ item }} update_cache=yes
@@ -74,6 +78,7 @@
   when: "package_result|changed and not reboot_enabled"
 
 #sudo dkms remove -m zfs -v 0.6.2 --all
+#sudo dkms remove -m spl -v 3.13.0-46-generic --all
 
 - name: Load the zfs module
   command: /sbin/modprobe zfs
