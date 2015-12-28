@@ -48,7 +48,11 @@
 
 #sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
 
-#Load the zfs module
+- name: Load the zfs module
+  command: /sbin/modprobe zfs
+  register: modprobe_result
+  when: "package_result|changed and not reboot_enabled"
+#
 #sudo modprobe zfs
 #Verify that it loaded correctly.
 #lsmod | grep zfs
