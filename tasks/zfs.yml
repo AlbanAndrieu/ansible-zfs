@@ -14,10 +14,12 @@
      - ppa:zfs-native/stable
      - ppa:zfs-native/grub
 
+#TODO see https://docs.docker.com/engine/userguide/storagedriver/zfs-driver/
 - name: Install ZFS
   apt: pkg={{ item }} state=present update_cache=yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   with_items:
+     - software-properties-common
      - debootstrap
      - zfs-initramfs
      - zfsutils
@@ -45,6 +47,25 @@
   when: "package_result|changed and reboot_enabled"
 
 #sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
+
+#Load the zfs module
+#sudo modprobe zfs
+#Verify that it loaded correctly.
+#lsmod | grep zfs
+
+- name: Create a zpool for docker
+  command: zpool create -f {{ zfs_docker_pool }} /dev/sdb
+#-O compression=gzip
+#  when: reboot_enabled
+  sudo: yes
+
+#sudo zfs create
+
+- name: Create a zfs file system for docker
+  command: zpool create -o mountpoint={{ zfs_docker_directory }} {{ zfs_docker_pool }}/docker
+#-O compression=gzip
+#  when: reboot_enabled
+  sudo: yes
 
 - name: Create a zfs file system
   action: zfs name={{ zfs_pool }}/home state=present
