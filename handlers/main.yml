@@ -3,7 +3,7 @@
 # See http://ansible.cc/docs/playbooks.html for more information about handlers.
 
 - name: Stop Docker
-  service: name=docker state=stoped
+  service: name=docker state=stopped
 
 - name: Start Docker
   service: name=docker state=started

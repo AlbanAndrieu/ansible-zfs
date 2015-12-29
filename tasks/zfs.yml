@@ -10,7 +10,7 @@
 - name: Stop docker
   service:
     name: docker
-    state: stoped
+    state: stopped
 
 #- name:  Uninstall dkms packages
 #  apt: >
