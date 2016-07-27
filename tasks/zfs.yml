@@ -70,6 +70,7 @@
     state=absent
     purge=yes
     force=yes
+    update_cache=yes
   sudo: yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   with_items:
@@ -77,6 +78,10 @@
      - postgresql-9.2
      - postgresql-9.3
      - postgresql-9.4
+
+- name: Autoremove
+  apt: autoremove
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Upgrade dist
   apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' force=yes install_recommends=yes
