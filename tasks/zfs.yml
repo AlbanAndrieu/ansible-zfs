@@ -28,7 +28,6 @@
 #sudo apt-get autoremove 'virtualbox*'
 
 #sudo apt-get install --no-install-recommends linux-image-generic linux-headers-generic
-#sudo apt-get dist-upgrade
 #- name: Upgrade kernel
 #  apt: pkg={{ item }} state=present update_cache=yes
 #  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
@@ -61,8 +60,12 @@
      - zfs-dkms
   register: package_result
 
+- name: stop postgresql
+  service: name=postgresql state=stopped
+  sudo: yes
+
 - name: Upgrade dist
-  apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' force=yes
+  apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' force=yes install_recommends=yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Reboot instance
