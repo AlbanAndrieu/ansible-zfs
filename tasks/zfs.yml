@@ -61,6 +61,10 @@
      - zfs-dkms
   register: package_result
 
+- name: Upgrade dist
+  apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef'
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
 - name: Reboot instance
   command: /sbin/shutdown -r now
   register: reboot_result
