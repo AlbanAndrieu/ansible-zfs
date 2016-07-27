@@ -62,7 +62,7 @@
   register: package_result
 
 - name: Upgrade dist
-  apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef'
+  apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' force=yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Reboot instance
