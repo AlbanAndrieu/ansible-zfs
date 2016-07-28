@@ -81,8 +81,8 @@
      - postgresql-9.4
      - postgresql-9.5
 
-- name: Upgrade dist
-  apt: upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' force=yes install_recommends=yes
+- name: Upgrade safe
+  apt: upgrade=safe update_cache=yes dpkg_options='force-confold,force-confdef' force=yes install_recommends=yes
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Reboot instance
