@@ -124,6 +124,13 @@
 #  when: reboot_enabled
   sudo: yes
 
+#- name: Create dpool
+#  shell: zpool create -f -o version=22 -m /dpool {{ zfs_pool }}
+
+#- name: Set commpression on {{ zfs_pool }}
+#  shell: zfs set compression=on {{ zfs_pool }}
+#  sudo: yes
+
 #sudo zfs create
 
 - name: Create a zfs file system for docker
@@ -139,6 +146,17 @@
   action: zfs name={{ zfs_pool }}/home state=present
   when: reboot_enabled
 
+
+- stat: path={{ jenkins_home }}
+  register: jenkins_dir
+
+- debug: msg="Jenkis dir already exists"
+  when: jenkins_dir.stat.isdir is defined and jenkins_dir.stat.isdir
+
+- name: Create jenkins zpool
+  command: zpool create jenkins c0t1d0 creates={{ jenkins_home }}
+  when: jenkins_dir.stat is not defined and reboot_enabled
+
 - name: Create a zfs file system with quota of 10GiB and visible snapdir
   action: zfs name={{ zfs_pool }}/jenkins quota='10G' snapdir=visible state=present
   when: reboot_enabled
@@ -146,6 +164,9 @@
 - name: Crate zfs snapshot of the above file system
   action: zfs name={{ zfs_pool }}/jenkins@initial-snapshot state=present
   when: reboot_enabled
+
+- name: set {{ jenkins_home }} permissions
+  file: path={{ jenkins_home }} state=directory mode=755 owner={{ jenkins_user }}  group={{ jenkins_group }}
 
 - name: Create zfs volume named log with a size of 10MiB
   action: zfs name={{ zfs_pool }}/log volsize=10M state=present
