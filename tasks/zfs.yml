@@ -62,7 +62,7 @@
 
 - name: stop postgresql
   service: name=postgresql state=stopped
-  sudo: yes
+  become: yes
 
 #- name: Uninstall postgresql
 #  apt: >
@@ -72,7 +72,7 @@
 #    force=yes
 #    update_cache=yes
 #    autoremove=yes
-#  sudo: yes
+#  become: yes
 #  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 #  with_items:
 #     - postgresql-9.1
@@ -86,18 +86,20 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Reboot instance
-  command: /sbin/shutdown -r now
+  shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+  async: 1
+  poll: 0
   register: reboot_result
   when: "package_result|changed and reboot_enabled"
 
 - name: Wait for instance to come online (10 minute timeout)
-  sudo: false
+  become: false
   local_action:
     module: wait_for
     host: "{{ ansible_ssh_host|default(inventory_hostname) }}"
     port: "{{ ansible_ssh_port|default(ssh_port) }}"
-    delay: 30
-    timeout: 600
+    delay: 180
+    timeout: 1200
     state: started
   when: "package_result|changed and reboot_enabled"
 
@@ -122,14 +124,14 @@
   command: zpool create -f {{ zfs_docker_pool }} /dev/sdb
 #-O compression=gzip
 #  when: reboot_enabled
-  sudo: yes
+  become: yes
 
 #- name: Create dpool
 #  shell: zpool create -f -o version=22 -m /dpool {{ zfs_pool }}
 
 #- name: Set commpression on {{ zfs_pool }}
 #  shell: zfs set compression=on {{ zfs_pool }}
-#  sudo: yes
+#  become: yes
 
 #sudo zfs create
 
@@ -137,7 +139,7 @@
   command: zpool create -o mountpoint={{ zfs_docker_directory }} {{ zfs_docker_pool }}/docker
 #-O compression=gzip
 #  when: reboot_enabled
-  sudo: yes
+  become: yes
 
 #TODO check docker
 #sudo docker info
@@ -145,7 +147,6 @@
 - name: Create a zfs file system
   action: zfs name={{ zfs_pool }}/home state=present
   when: reboot_enabled
-
 
 - stat: path={{ jenkins_home }}
   register: jenkins_dir
