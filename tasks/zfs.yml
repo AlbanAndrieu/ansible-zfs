@@ -37,7 +37,7 @@
 
 - name: Install ZFS repo
   apt_repository: repo={{ item }} update_cache=yes
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['12.04','14.04']
   with_items:
      - ppa:zfs-native/stable
 #     - ppa:zfs-native/grub
@@ -45,7 +45,7 @@
 #TODO see https://docs.docker.com/engine/userguide/storagedriver/zfs-driver/
 - name: Install ZFS
   apt: pkg={{ item }} state=present update_cache=yes
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['12.04','14.04']
   with_items:
      - software-properties-common
      - debootstrap
@@ -59,6 +59,18 @@
      - spl-dkms
      - zfs-dkms
   register: package_result
+
+- name: Install ZFS
+  apt: pkg={{ item }} state=present update_cache=yes
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version not in ['12.04','14.04']
+  with_items:
+     - lxd
+     - lxd-client
+     - zfsutils-linux
+  register: package_result
+
+#TODO
+#https://insights.ubuntu.com/2016/02/16/zfs-is-the-fs-for-containers-in-ubuntu-16-04/
 
 - name: stop postgresql
   service: name=postgresql state=stopped
@@ -83,7 +95,7 @@
 
 - name: Upgrade safe
   apt: upgrade=safe update_cache=yes dpkg_options='force-confold,force-confdef' force=yes install_recommends=yes
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu')
 
 - name: Reboot instance
   shell: sleep 2 && shutdown -r now "Ansible updates triggered"
@@ -107,6 +119,7 @@
   command: /usr/sbin/dkms status
   register: dkms_result
   when: "package_result|changed and not reboot_enabled"
+  become: true
 
 #sudo dkms remove -m zfs -v 0.6.2 --all
 #sudo dkms remove -m spl -v 3.13.0-46-generic --all
@@ -115,7 +128,8 @@
   command: /sbin/modprobe zfs
   register: modprobe_result
   when: "package_result|changed and not reboot_enabled"
-#
+  become: true
+
 #sudo modprobe zfs
 #Verify that it loaded correctly.
 #lsmod | grep zfs
