@@ -64,6 +64,8 @@
   apt: pkg={{ item }} state=present update_cache=yes
   when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version not in ['12.04','14.04']
   with_items:
+#See https://help.ubuntu.com/lts/serverguide/lxc.html
+     - lxc
      - lxd
      - lxd-client
      - zfsutils-linux
