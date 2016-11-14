@@ -2,6 +2,5 @@
 # This playbook contains common plays that will be run on all nodes.
 
 - include: zfs.yml
-  when: zfs_enabled 
+  when: (ansible_os_family not in ['Windows']) and zfs_enabled
   tags: [zfs]
-  
