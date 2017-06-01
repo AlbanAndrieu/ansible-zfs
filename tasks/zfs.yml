@@ -69,6 +69,7 @@
      - lxd
      - lxd-client
      - zfsutils-linux
+     - mountall
   register: package_result
 
 #TODO
@@ -97,14 +98,14 @@
 
 - name: Upgrade safe
   apt: upgrade=safe update_cache=yes dpkg_options='force-confold,force-confdef' force=yes install_recommends=yes
-  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu')
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['12.04','14.04']
 
 - name: Reboot instance
   shell: sleep 2 && shutdown -r now "Ansible updates triggered"
   async: 1
   poll: 0
   register: reboot_result
-  when: "package_result|changed and reboot_enabled"
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['12.04','14.04'] and "package_result|changed and reboot_enabled"
 
 - name: Wait for instance to come online (10 minute timeout)
   become: false
@@ -115,7 +116,7 @@
     delay: 180
     timeout: 1200
     state: started
-  when: "package_result|changed and reboot_enabled"
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['12.04','14.04'] and "package_result|changed and reboot_enabled"
 
 - name: Check dkms
   command: /usr/sbin/dkms status
@@ -129,7 +130,7 @@
 - name: Load the zfs module
   command: /sbin/modprobe zfs
   register: modprobe_result
-  when: "package_result|changed and not reboot_enabled"
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['12.04','14.04'] and "package_result|changed and not reboot_enabled"
   become: true
 
 #sudo modprobe zfs
@@ -140,6 +141,7 @@
   command: zpool create -f {{ zfs_docker_pool }} /dev/sdb
 #-O compression=gzip
 #  when: reboot_enabled
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['16.04'] 
   become: yes
 
 #- name: Create dpool
@@ -155,13 +157,14 @@
   command: zpool create -o mountpoint={{ zfs_docker_directory }} {{ zfs_docker_pool }}/docker
 #-O compression=gzip
 #  when: reboot_enabled
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version in ['16.04'] 
   become: yes
 
 #TODO check docker
 #sudo docker info
 
 - name: Create a zfs file system
-  action: zfs name={{ zfs_pool }}/home state=present
+  action: zfs name={{ zfs_pool }}/backup state=present
   when: reboot_enabled
 
 - stat: path={{ jenkins_home }}
@@ -189,8 +192,28 @@
   action: zfs name={{ zfs_pool }}/log volsize=10M state=present
   when: reboot_enabled
 
+#Enabel share smb on
+#sudo zfs set sharesmb=on {{ zfs_pool }}/jenkins
+
 #- name: Removes snapshot of rpool/oldfs
 #  action: zfs name={{ zfs_pool }}/oldfs@oldsnapshot state=absent
 
 #- name: Removes file system rpool/oldfs
 #  action: zfs name={{ zfs_pool }}/oldfs state=absent
+
+#less /etc/default/zfs
+#sudo zpool upgrade -v
+#sudo zdb
+#sudo zpool status
+#sudo zfs list
+
+- name: zfs | Mount all
+  command: zfs mount -v -a
+  when: ((ansible_distribution == 'Solaris') and (ansible_distribution_version not in ['11.1']))  
+  become: yes
+
+- name: zfs | Get /data info
+  command: zfs get all {{ zfs_pool }}/backup
+  when: ((ansible_distribution == 'Solaris') and (ansible_distribution_version not in ['11.1']))  
+  become: yes
+  
