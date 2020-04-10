@@ -72,9 +72,14 @@
      - mountall
   register: package_result
 
-#TODO
-#https://insights.ubuntu.com/2016/02/16/zfs-is-the-fs-for-containers-in-ubuntu-16-04/
+# See https://insights.ubuntu.com/2016/02/16/zfs-is-the-fs-for-containers-in-ubuntu-16-04/
 
+- name: Install zsys
+  apt: pkg={{ item }} state=present update_cache=yes
+  when: (ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and ansible_distribution_version is version('19.04', '>=')
+  with_items:
+     - zsys
+  
 - name: stop postgresql
   service: name=postgresql state=stopped
   become: yes
